@@ -28,6 +28,9 @@ public class Deck {
         deck.add(c);
     }
 
+    public boolean isEmpty(){
+        return deck.isEmpty();
+    }
 
     @Override
     public String toString() {
