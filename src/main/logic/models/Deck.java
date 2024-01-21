@@ -24,8 +24,22 @@ public class Deck {
         return gotCard;
     }
 
+    public Card getCardFromIndex(int i){
+        Card gotCard;
+        gotCard = deck.get(i);
+        return gotCard;
+    }
+
+    public int size(){
+        return this.deck.size();
+    }
+
     public void addCard(Card c){
         deck.add(c);
+    }
+
+    public void removeCard(Card c) {
+        deck.remove(c);
     }
 
     public boolean isEmpty(){
