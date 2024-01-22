@@ -17,7 +17,7 @@ public class RequestHandler {
 
     public void handle(){
         try {
-            ArrayList<String> requestArray = new ArrayList<String>();
+            ArrayList<String> requestArray = new ArrayList<>();
             InputStream inClient = null;
             inClient = clientSocket.getInputStream();
             BufferedReader br = new BufferedReader(new InputStreamReader(inClient));
