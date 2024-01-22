@@ -30,6 +30,11 @@ public class RequestHandler {
             System.out.println("Generating Request.");
             this.generateRequest(requestArray);
             System.out.println(this.HTTPRequest);
+            Response r = new Response(HTTPRequest, clientSocket);
+            r.handleResponse();
+            System.out.println("Handle response.");
+            clientSocket.close();
+            System.out.println("Connection closed.");
 
         }catch (IOException e){
             System.err.println("IOException during Request Handling.");
