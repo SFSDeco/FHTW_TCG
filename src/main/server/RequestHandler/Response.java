@@ -9,6 +9,7 @@ import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.annotation.*;
 import main.logic.models.User;
+import main.server.DBConnect.dbCommunication;
 
 public class Response {
     private final Request incomingRequest;
@@ -126,7 +127,17 @@ public class Response {
             Map<String, Object> map = objectMapper.convertValue(jsonNode, Map.class);
             username = (String) map.get("Username");
             password = (String) map.get("Password");
-            this.respond("Successfully added User: " +username +"\nWith password: " + password, "200 OK");
+            User createUser = new User(username, password);
+
+            dbCommunication connection = new dbCommunication();
+            connection.connect();
+            if(connection.insertUser(createUser))
+                this.respond("Successfully added User: " +username +"\nWith password: " + password, "200 OK");
+
+            else{
+                this.respond("Error during Database communication", "500 Internal Server Error");
+            }
+            connection.disconnect();
 
         }catch(IOException e){
             this.respond("Error during User Creation", "500");
