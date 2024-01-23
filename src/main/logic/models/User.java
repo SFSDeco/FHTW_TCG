@@ -3,13 +3,17 @@ package main.logic.models;
 import java.util.Vector;
 
 public class User {
+
+    private int id;
     private String userName;
     private String password;
     private Vector<Card> cardStack = new Vector<Card>();
     private Deck cardDeck;
     private int currency = 20;
+    private String authToken;
 
-    public User(String userName, String password, Vector<Card> cardStack, Vector<Card> cardDeck, int currency) {
+    public User(int id, String userName, String password, Vector<Card> cardStack, Vector<Card> cardDeck, int currency) {
+        this.id = id;
         this.userName = userName;
         this.password = password;
         this.cardStack = cardStack;
@@ -17,11 +21,12 @@ public class User {
         this.currency = currency;
     }
 
-    public User(String userName, String password, Vector<Card> cardStack, Vector<Card> cardDeck) {
+    public User(int id, String userName, String password, int currency, String authToken) {
+        this.id = id;
         this.userName = userName;
         this.password = password;
-        this.cardStack = cardStack;
-        this.cardDeck = new Deck(cardDeck);
+        this.currency = currency;
+        this.authToken = authToken;
     }
 
     public User(String userName, String password){
@@ -29,8 +34,24 @@ public class User {
         this.password = password;
     }
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
     public String getPassword() {
         return password;
+    }
+
+    public String getAuthToken() {
+        return authToken;
+    }
+
+    public void setAuthToken(String authToken) {
+        this.authToken = authToken;
     }
 
     public void setPassword(String password) {

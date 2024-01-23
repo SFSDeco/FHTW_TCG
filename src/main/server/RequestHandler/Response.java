@@ -73,7 +73,7 @@ public class Response {
                 this.postUser();
                 break;
             case "/sessions":
-                this.respond("Successfully logged in.", "200 OK");
+                this.loginUser();
                 break;
             case "/packages":
                 this.respond("Created Package.", "201 Created");
@@ -118,7 +118,6 @@ public class Response {
 
     public void postUser() {
         String postString = incomingRequest.getPostContent();
-        System.out.println("postString to be mapped: " + postString);
         String username, password;
 
         try {
@@ -136,6 +135,41 @@ public class Response {
 
             else{
                 this.respond("Error during Database communication", "500 Internal Server Error");
+            }
+            connection.disconnect();
+
+        }catch(IOException e){
+            this.respond("Error during User Creation", "500");
+            System.err.println("Exception occurred in postUser: " + e);
+        }
+    }
+
+    public void loginUser(){
+        String postString = incomingRequest.getPostContent();
+        String username, password;
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(postString);
+            Map<String, Object> map = objectMapper.convertValue(jsonNode, Map.class);
+            username = (String) map.get("Username");
+            password = (String) map.get("Password");
+            dbCommunication connection = new dbCommunication();
+
+            connection.connect();
+            User loginAttempt = connection.getUser(username);
+            if(loginAttempt != null &&
+                    loginAttempt.getUserName().equals(username) && loginAttempt.getPassword().equals(password)){
+
+                if(connection.createToken(loginAttempt)){
+                    this.respond("Successfully logged in and set authToken", "200 OK");
+                }
+                else{
+                    this.respond("Error during Login", "500 Internal Server Error");
+                }
+            }
+            else{
+                this.respond("Login failed due to incorrect credentials.", "400 Bad Request");
             }
             connection.disconnect();
 
