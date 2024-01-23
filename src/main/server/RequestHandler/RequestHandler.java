@@ -21,14 +21,24 @@ public class RequestHandler {
             InputStream inClient = null;
             inClient = clientSocket.getInputStream();
             BufferedReader br = new BufferedReader(new InputStreamReader(inClient));
-            String requestLine;
+            String requestLine = br.readLine();
 
             System.out.println("Getting Request.");
-            while ((requestLine = br.readLine()) != null && !requestLine.isEmpty()) {
+            while (!requestLine.isBlank()) {
                 requestArray.add(requestLine);
+                requestLine = br.readLine();
             }
+
+            System.out.println("Building POST Content");
+            StringBuilder postContent = new StringBuilder();
+            while(br.ready()){
+                postContent.append((char) br.read());
+            }
+
+            System.out.println("POST Content: " + postContent.toString());
+
             System.out.println("Generating Request.");
-            this.generateRequest(requestArray);
+            this.generateRequest(requestArray, postContent.toString());
             System.out.println(this.HTTPRequest);
             Response r = new Response(HTTPRequest, clientSocket);
             r.handleResponse();
@@ -41,7 +51,7 @@ public class RequestHandler {
         }
     }
 
-    public void generateRequest(ArrayList<String> requestString){
+    public void generateRequest(ArrayList<String> requestString, String postContent){
         HTTPRequest = new Request();
         String[] Line;
         Line = requestString.get(0).split(" ", 3);
@@ -53,6 +63,7 @@ public class RequestHandler {
             Line = requestString.get(i).split(": ", 2);
             HTTPRequest.addHeader(Line[0], Line[1]);
         }
+        HTTPRequest.setPostContent(postContent);
 
     }
 

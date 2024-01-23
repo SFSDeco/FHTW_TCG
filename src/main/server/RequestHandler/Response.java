@@ -3,6 +3,12 @@ package main.server.RequestHandler;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.Socket;
+import java.util.*;
+
+import com.fasterxml.jackson.core.*;
+import com.fasterxml.jackson.databind.*;
+import com.fasterxml.jackson.annotation.*;
+import main.logic.models.User;
 
 public class Response {
     private final Request incomingRequest;
@@ -63,7 +69,7 @@ public class Response {
         String path = incomingRequest.getRequestPath();
         switch(path){
             case "/users":
-                this.respond("Successfully added User", "201 Created");
+                this.postUser();
                 break;
             case "/sessions":
                 this.respond("Successfully logged in.", "200 OK");
@@ -108,6 +114,26 @@ public class Response {
                 this.respond("Service not implemented", "501 Not Implemented");
         }
     }
+
+    public void postUser() {
+        String postString = incomingRequest.getPostContent();
+        System.out.println("postString to be mapped: " + postString);
+        String username, password;
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(postString);
+            Map<String, Object> map = objectMapper.convertValue(jsonNode, Map.class);
+            username = (String) map.get("Username");
+            password = (String) map.get("Password");
+            this.respond("Successfully added User: " +username +"\nWith password: " + password, "200 OK");
+
+        }catch(IOException e){
+            this.respond("Error during User Creation", "500");
+            System.err.println("Exception occurred in postUser: " + e);
+        }
+    }
+
 
 
     public void respond(String text, String code){

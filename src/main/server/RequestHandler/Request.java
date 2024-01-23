@@ -8,6 +8,7 @@ public class Request {
     private String requestPath;
     private String requestVersion;
 
+    private String postContent;
     private Map<String ,String> headers;
 
     public Request(){
@@ -16,6 +17,14 @@ public class Request {
 
     public String getHTTPMethod() {
         return HTTPMethod;
+    }
+
+    public String getPostContent() {
+        return postContent;
+    }
+
+    public void setPostContent(String postContent) {
+        this.postContent = postContent;
     }
 
     public void setHTTPMethod(String HTTPMethod) {
@@ -62,6 +71,7 @@ public class Request {
                 "HTTPMethod='" + HTTPMethod + '\'' +
                 ", requestPath='" + requestPath + '\'' +
                 ", requestVersion='" + requestVersion + '\'' +
+                ", postContent='" + postContent + '\'' +
                 ", headers=" + headers +
                 '}';
     }

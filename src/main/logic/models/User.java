@@ -4,21 +4,29 @@ import java.util.Vector;
 
 public class User {
     private String userName;
+    private String password;
     private Vector<Card> cardStack = new Vector<Card>();
     private Deck cardDeck;
     private int currency = 20;
 
-    public User(String userName, Vector<Card> cardStack, Vector<Card> cardDeck, int currency) {
+    public User(String userName, String password, Vector<Card> cardStack, Vector<Card> cardDeck, int currency) {
         this.userName = userName;
+        this.password = password;
         this.cardStack = cardStack;
         this.cardDeck = new Deck(cardDeck);
         this.currency = currency;
     }
 
-    public User(String userName, Vector<Card> cardStack, Vector<Card> cardDeck) {
+    public User(String userName, String password, Vector<Card> cardStack, Vector<Card> cardDeck) {
         this.userName = userName;
+        this.password = password;
         this.cardStack = cardStack;
         this.cardDeck = new Deck(cardDeck);
+    }
+
+    public User(String userName, String password){
+        this.userName = userName;
+        this.password = password;
     }
 
     public User(String userName) {
