@@ -5,6 +5,7 @@ import java.util.Vector;
 
 public class Deck {
     private Vector<Card> deck;
+    private Card worst;
 
     public Deck(Vector<Card> deck) {
         this.deck = deck;
@@ -28,6 +29,13 @@ public class Deck {
         Card gotCard;
         gotCard = deck.get(i);
         return gotCard;
+    }
+
+    public void setWorst(){
+        worst = deck.get(0);
+        for(Card c : deck){
+            if(c.getDamage() < worst.getDamage()) worst = c;
+        }
     }
 
     public int size(){

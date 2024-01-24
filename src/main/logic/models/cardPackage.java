@@ -4,12 +4,21 @@ import java.util.ArrayList;
 
 public class cardPackage {
     private final ArrayList<Card> cardPackage = new ArrayList<Card>(5);
+    private int packageID;
 
     public cardPackage() {
     }
 
     public ArrayList<Card> getCardPackage() {
         return cardPackage;
+    }
+
+    public int getPackageID() {
+        return packageID;
+    }
+
+    public void setPackageID(int packageID) {
+        this.packageID = packageID;
     }
 
     public boolean addCard(Card c){

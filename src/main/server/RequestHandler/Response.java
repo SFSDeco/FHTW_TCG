@@ -11,7 +11,9 @@ import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.databind.type.TypeFactory;
 import main.logic.models.Card;
+import main.logic.models.Deck;
 import main.logic.models.User;
+import main.logic.models.cardPackage;
 import main.server.DBConnect.dbCommunication;
 
 public class Response {
@@ -47,10 +49,10 @@ public class Response {
         if(path.startsWith("/users")) path = "/users";
         switch(path){
             case "/cards":
-                this.respond("Got Cards", "200 OK");
+                this.getCards();
                 break;
             case "/deck":
-                this.respond("Got Deck", "200 OK");
+                this.getDeck();
                 break;
             case "/stats":
                 this.respond("Got Stats", "200 OK");
@@ -82,7 +84,7 @@ public class Response {
                 this.createPackage();
                 break;
             case "/transactions/packages":
-                this.respond("User received Package.", "200 OK");
+                this.acquirePackage();
                 break;
             default:
                 this.respond("Service has not been Implemented.", "501 Not Implemented");
@@ -101,6 +103,75 @@ public class Response {
                 break;
             default:
                 this.respond("Service not implemented", "501 Not Implemented");
+        }
+    }
+
+    public void getDeck(){
+        if(!validateAuth()) {
+            this.respond("Authorization missing.", "402 Authorization required");
+            return;
+        }
+        String authorization = incomingRequest.getHeaderMap().get("Authorization").replace("Bearer ", "");
+
+        dbCommunication connection = new dbCommunication();
+        connection.connect();
+
+        User user = connection.getUserFromAuth(authorization);
+        Deck userDeck = connection.getDeck(user);
+
+        connection.disconnect();
+
+        if(userDeck.isEmpty()){
+            this.respond("No Deck set for queried User", "200 OK");
+            return;
+        }
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            String jsonArrayString = objectMapper.writeValueAsString(userDeck);
+
+            this.respond(jsonArrayString, "200 OK");
+        }catch(Exception e){
+            this.respond("Error response creation", "500");
+            System.err.println("Exception occurred in getCards: " + e);
+        }
+    }
+
+    public void getCards(){
+        if(!validateAuth()) {
+            this.respond("Authorization missing.", "402 Authorization required");
+            return;
+        }
+        String authorization = incomingRequest.getHeaderMap().get("Authorization").replace("Bearer ", "");
+
+        dbCommunication connection = new dbCommunication();
+        connection.connect();
+
+        User user = connection.getUserFromAuth(authorization);
+
+        System.out.println(user);
+
+        Vector<Card> userCards = connection.getCards(user);
+
+        System.out.println(userCards);
+
+        connection.disconnect();
+
+        if(userCards.isEmpty()){
+            this.respond("No Cards for queried User", "200 OK");
+            return;
+        }
+
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            String jsonArrayString = objectMapper.writeValueAsString(userCards);
+
+            this.respond(jsonArrayString, "200 OK");
+        }catch(Exception e){
+            this.respond("Error response creation", "500");
+            System.err.println("Exception occurred in getCards: " + e);
         }
     }
 
@@ -185,6 +256,7 @@ public class Response {
     public void createPackage(){
         if(!checkForAdmin()){
             this.respond("Access denied.", "403 Forbidden");
+            return;
         }
         String postString = incomingRequest.getPostContent();
         String cardName, cardID, cardElement, cardType, cardSpecialty;
@@ -224,6 +296,69 @@ public class Response {
             System.err.println("Exception occurred in postUser: " + e);
         }
 
+    }
+
+    public void acquirePackage(){
+        if(!validateAuth()) {
+            this.respond("Authorization missing.", "402 Authorization required");
+            return;
+        }
+        String authorization = incomingRequest.getHeaderMap().get("Authorization").replace("Bearer ", "");
+        dbCommunication connection = new dbCommunication();
+        connection.connect();
+        User user = connection.getUserFromAuth(authorization);
+
+        if(user == null){
+            this.respond("Server Error.", "500 Internal Server Error");
+            connection.disconnect();
+            return;
+        }
+
+        if(user.getCurrency() < 1){
+            this.respond("User does not possess required currency.", "200 OK");
+            connection.disconnect();
+            return;
+        }
+
+        cardPackage acquiredPackage = connection.getPackage();
+
+        if(acquiredPackage == null){
+            this.respond("No valid Packages.", "500 Internal Server Error");
+            connection.disconnect();
+            return;
+        }
+
+        user.addPackage(acquiredPackage);
+        user.setCurrency(user.getCurrency()-5);
+
+        if(!connection.updateUser(user)){
+            this.respond("Server Error.", "500 Internal Server Error");
+            connection.disconnect();
+            return;
+        }
+
+        if(!connection.deletePackage(acquiredPackage.getPackageID())){
+            this.respond("Unexpected Failure!", "418 I am a teapot");
+            connection.disconnect();
+            return;
+        }
+
+        connection.disconnect();
+        this.respond("Acquired package.", "200 OK");
+    }
+
+    public boolean validateAuth(){
+        boolean validate = false;
+        if(!incomingRequest.getHeaderMap().containsKey("Authorization")) return false;
+        String authorization = incomingRequest.getHeaderMap().get("Authorization").replace("Bearer ", "");
+
+        System.out.println(authorization);
+
+        dbCommunication connection = new dbCommunication();
+        connection.connect();
+        validate = connection.validateAuthorization(authorization);
+        connection.disconnect();
+        return validate;
     }
 
     public boolean checkForAdmin(){

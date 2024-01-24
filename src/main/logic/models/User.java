@@ -1,5 +1,8 @@
 package main.logic.models;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Vector;
 
 public class User {
@@ -32,6 +35,37 @@ public class User {
     public User(String userName, String password){
         this.userName = userName;
         this.password = password;
+    }
+
+    public void addCardToStack(Card c){
+        cardStack.add(c);
+    }
+
+    public void removeCard(Card c){
+        cardStack.remove(c);
+    }
+
+    public void addPackage(cardPackage pack){
+        for(Card c : pack.getCardPackage()){
+            this.addCardToStack(c);
+        }
+        this.evaluateDeck();
+    }
+
+    public void evaluateDeck(){
+        Deck newDeck = new Deck(new Vector<Card>());
+        cardStack.sort(new Comparator<Card>() {
+            @Override
+            public int compare(Card o1, Card o2) {
+                return Double.compare(o2.getDamage(), o1.getDamage());
+            }
+        });
+
+        for(int i = 0; i < 4; i++){
+            newDeck.addCard(cardStack.get(i));
+        }
+
+        cardDeck = newDeck;
     }
 
     public int getId() {

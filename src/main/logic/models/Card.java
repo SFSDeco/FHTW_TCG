@@ -21,6 +21,15 @@ public class Card {
         this.specialty = specialty;
     }
 
+    public Card(String name, String id, double dmg, String cardType, String element) {
+        this.name = name;
+        this.Id = id;
+        this.dmg = dmg;
+        this.cardType = cardType;
+        this.element = element;
+        this.specialty = this.getSpecialFromName();
+    }
+
     public Card(String Id, String name, double dmg){
         this.Id = Id;
         this.name = name;
