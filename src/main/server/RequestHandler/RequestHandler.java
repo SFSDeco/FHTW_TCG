@@ -34,10 +34,6 @@ public class RequestHandler {
             while(br.ready()){
                 postContent.append((char) br.read());
             }
-
-            System.out.println("POST Content: " + postContent.toString());
-
-            System.out.println("Generating Request.");
             this.generateRequest(requestArray, postContent.toString());
             System.out.println(this.HTTPRequest);
             Response r = new Response(HTTPRequest, clientSocket);

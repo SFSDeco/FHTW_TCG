@@ -1,8 +1,10 @@
 package main.server.DBConnect;
 
+import main.logic.models.Card;
 import main.logic.models.User;
 
 import java.sql.*;
+import java.util.List;
 
 public class dbCommunication {
     private Connection c = null;
@@ -27,6 +29,81 @@ public class dbCommunication {
         }catch (Exception e){
             System.err.println(e.getClass().getName() + ": " + e.getMessage()  );
         }
+    }
+
+    public boolean createPackage(List<Card> cardsToAdd){
+        boolean success = false;
+        if(!connected){
+            System.err.println("Not connected to Database!");
+            return false;
+        }
+        try{
+            int packageID;
+            c.setAutoCommit(false);
+            PreparedStatement stmt = c.prepareStatement("INSERT INTO package DEFAULT VALUES", Statement.RETURN_GENERATED_KEYS);
+
+            int count = stmt.executeUpdate();
+            ResultSet rs = stmt.getGeneratedKeys();
+            if(count > 0){
+                if(rs.next()) {
+                    packageID = rs.getInt(1);
+                    System.out.println("ID Generated in DB is: " + packageID);
+                    for (Card c : cardsToAdd) {
+                        if (!this.createCard(packageID, c)) {
+                            System.out.println("Error during Card creation");
+                        }
+                    }
+                    success = true;
+                }
+            }
+
+            stmt.close();
+            c.commit();
+
+        } catch (Exception e){
+            System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+        }
+
+        return success;
+    }
+
+    public boolean createCard(int cardPackage, Card toAdd){
+        boolean success = false;
+        if(!connected){
+            System.err.println("Not connected to Database!");
+            return false;
+        }
+        try{
+            c.setAutoCommit(false);
+            PreparedStatement stmt = c.prepareStatement("INSERT INTO cards (cardid, name, dmg, cardtype, element) VALUES (?, ?, ?, ?, ?)");
+
+            stmt.setString(1, toAdd.getId());
+            stmt.setString(2, toAdd.getName());
+            stmt.setDouble(3, toAdd.getDamage());
+            stmt.setString(4, toAdd.getCardType());
+            stmt.setString(5, toAdd.getElement());
+
+            int count = stmt.executeUpdate();
+            if(count > 0){
+                stmt = c.prepareStatement("INSERT INTO packagecards (packageid, cardid) VALUES (?, ?)");
+                stmt.setInt(1, cardPackage);
+                stmt.setString(2, toAdd.getId());
+                count = stmt.executeUpdate();
+
+                if(count > 0) success = true;
+
+
+            }
+
+            stmt.close();
+            c.commit();
+
+        } catch (Exception e){
+            System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+        }
+
+
+        return success;
     }
 
     public User getUser(String name){
@@ -74,7 +151,7 @@ public class dbCommunication {
         boolean success = false;
         if(!connected){
             System.err.println("Not connected to Database!");
-            return success;
+            return false;
         }
         try{
             int id = userToAuth.getId();
@@ -103,7 +180,7 @@ public class dbCommunication {
         boolean success = false;
         if(!connected){
             System.err.println("Not connected to Database!");
-            return success;
+            return false;
         }
         try{
             String username = toInsert.getUserName();

@@ -4,17 +4,35 @@ import java.util.Objects;
 
 public class Card {
     private String name;
+    private String Id;
     private double dmg;
     private String cardType;
     private String element;
     private String specialty;
 
-    public Card(String name, double dmg, String cardType, String element, String specialty) {
+    public Card(){}
+
+    public Card(String Id, String name, double dmg, String cardType, String element, String specialty) {
+        this.Id = Id;
         this.name = name;
         this.dmg = dmg;
         this.cardType = cardType;
         this.element = element;
         this.specialty = specialty;
+    }
+
+    public Card(String Id, String name, double dmg){
+        this.Id = Id;
+        this.name = name;
+        this.dmg = dmg;
+    }
+
+    public String getId() {
+        return Id;
+    }
+
+    public void setId(String ID) {
+        this.Id = Id;
     }
 
     public String getElement() {
@@ -33,11 +51,11 @@ public class Card {
         this.name = name;
     }
 
-    public double getDmg() {
+    public double getDamage() {
         return dmg;
     }
 
-    public void setDmg(double dmg) {
+    public void setDamage(double dmg) {
         this.dmg = dmg;
     }
 
@@ -61,7 +79,7 @@ public class Card {
         double damageSelf, damageOpponent;
 
         damageSelf = dmg;
-        damageOpponent = opponent.getDmg();
+        damageOpponent = opponent.getDamage();
 
         damageSelf = damageSelf * this.calculateSpell(opponent.getElement());
         damageOpponent = damageOpponent * opponent.calculateSpell(this.element);
@@ -91,6 +109,39 @@ public class Card {
         return 1;
     }
 
+    public String getElementFromName(){
+        String element = "normal";
+        String nameCopy = name.toLowerCase();
+
+        if(nameCopy.contains("water")) element = "water";
+        else if(nameCopy.contains("fire")) element = "fire";
+
+        return element;
+    }
+
+    public String getSpecialFromName(){
+        String special = "";
+        String nameCopy = name.toLowerCase();
+
+        if(nameCopy.contains("goblin")) special = "goblin";
+        else if (nameCopy.contains("dragon")) special = "dragon";
+        else if (nameCopy.contains("ork")) special = "ork";
+        else if (nameCopy.contains("wizard")) special = "wizard";
+        else if (nameCopy.contains("knight")) special = "knight";
+        else if (nameCopy.contains("kraken")) special = "kraken";
+        else if (nameCopy.contains("fire elf")) special = "fire elf";
+
+        return special;
+    }
+
+    public String getTypeFromName(){
+        String type = "monster";
+        String nameCopy = name.toLowerCase();
+        if(nameCopy.contains("spell")) type = "spell";
+
+        return type;
+    }
+
     public double calculateSpell(String OppElement){
         String weakness;
 
@@ -118,9 +169,11 @@ public class Card {
     public String toString() {
         return "Card{" +
                 "name='" + name + '\'' +
+                ", Id='" + Id + '\'' +
                 ", dmg=" + dmg +
                 ", cardType='" + cardType + '\'' +
                 ", element='" + element + '\'' +
+                ", specialty='" + specialty + '\'' +
                 '}';
     }
 

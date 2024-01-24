@@ -6,8 +6,11 @@ import java.net.Socket;
 import java.util.*;
 
 import com.fasterxml.jackson.core.*;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.annotation.*;
+import com.fasterxml.jackson.databind.type.TypeFactory;
+import main.logic.models.Card;
 import main.logic.models.User;
 import main.server.DBConnect.dbCommunication;
 
@@ -76,7 +79,7 @@ public class Response {
                 this.loginUser();
                 break;
             case "/packages":
-                this.respond("Created Package.", "201 Created");
+                this.createPackage();
                 break;
             case "/transactions/packages":
                 this.respond("User received Package.", "200 OK");
@@ -131,7 +134,7 @@ public class Response {
             dbCommunication connection = new dbCommunication();
             connection.connect();
             if(connection.insertUser(createUser))
-                this.respond("Successfully added User: " +username +"\nWith password: " + password, "200 OK");
+                this.respond("Successfully added User: " +username +"\nWith password: " + password, "201 Created");
 
             else{
                 this.respond("Error during Database communication", "500 Internal Server Error");
@@ -179,7 +182,58 @@ public class Response {
         }
     }
 
+    public void createPackage(){
+        if(!checkForAdmin()){
+            this.respond("Access denied.", "403 Forbidden");
+        }
+        String postString = incomingRequest.getPostContent();
+        String cardName, cardID, cardElement, cardType, cardSpecialty;
+        double dmg;
+        List<Card> cardsToAdd = new ArrayList<Card>();
 
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+
+            List<Map<String, Object>> jsonStringList = objectMapper.readValue(postString, new TypeReference<List<Map<String, Object>>>() {});
+            for(Map<String, Object> json : jsonStringList){
+                cardName = (String) json.get("Name");
+                cardID = (String) json.get("Id");
+                dmg = (Double) json.get("Damage");
+
+                Card c = new Card(cardID, cardName, dmg);
+                c.setCardType(c.getTypeFromName());
+                c.setElement(c.getElementFromName());
+                c.setSpecialty(c.getSpecialFromName());
+
+                cardsToAdd.add(c);
+            }
+
+            dbCommunication connection = new dbCommunication();
+            connection.connect();
+            if(connection.createPackage(cardsToAdd)){
+                this.respond("Created Package.", "201 Created");
+            }
+            else{
+                this.respond("Error during Package creation.", "500 Internal Server Error");
+            }
+            connection.disconnect();
+
+
+        }catch(IOException e){
+            this.respond("Error during User Creation", "500");
+            System.err.println("Exception occurred in postUser: " + e);
+        }
+
+    }
+
+    public boolean checkForAdmin(){
+        boolean isAdmin = false;
+        String authorization = incomingRequest.getHeaderMap().get("Authorization");
+
+        if(authorization.contains("admin-mtcgToken")) isAdmin = true;
+
+        return isAdmin;
+    }
 
     public void respond(String text, String code){
         out.print("HTTP/1.1 "+code+"\r\n");
