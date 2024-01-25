@@ -19,11 +19,13 @@ public class Server{
         try(ServerSocket serverSocket = new ServerSocket(port)){
             System.out.println("Server is running on port: " + port);
             while(true){
-                try(Socket clientSocket = serverSocket.accept()){
+                try{
+                    Socket clientSocket = serverSocket.accept();
                     System.out.println("Client connected: " + clientSocket);
                     //handleClient
-                    RequestHandler r = new RequestHandler(clientSocket);
-                    r.handle();
+                    Thread clientHandlerThread = new Thread(() -> handleClient(clientSocket));
+                    clientHandlerThread.start();
+
                 } catch (IOException e){
                     System.err.println("Error during client communication: " + e.getMessage());
                 }
@@ -33,5 +35,9 @@ public class Server{
         }
     }
 
-
+    private void handleClient(Socket clientSocket) {
+        // Handle the client in a separate thread
+        RequestHandler requestHandler = new RequestHandler(clientSocket);
+        requestHandler.handle();
+    }
 }

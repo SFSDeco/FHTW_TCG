@@ -43,7 +43,7 @@ public class RequestHandler {
             System.out.println("Connection closed.");
 
         }catch (IOException e){
-            System.err.println("IOException during Request Handling.");
+            System.err.println("IOException during Request Handling." + e);
         }
     }
 
