@@ -177,8 +177,13 @@ public class dbCommunication {
             rs.close();
             stmt.close();
 
+            User user = new User(id, username, password, coins, username+"-mtcgToken");
+
+            user.setCardStack(this.getCards(user));
+            user.setCardDeck(this.getDeck(user));
+
             if(!username.isEmpty() && !password.isEmpty() && coins >= 0){
-                return new User(id, username, password, coins, username+"-mtcgToken");
+                return user;
             }
 
         }catch (Exception e){
@@ -397,6 +402,48 @@ public class dbCommunication {
                     for(Card addCard : cardsToAdd){
                         stmt.setString(1, addCard.getId());
                         stmt.setInt(2, toUpdate.getId());
+                        stmt.executeUpdate();
+                    }
+                }
+                success = true;
+            }
+
+            stmt.close();
+            c.commit();
+
+        } catch (Exception e){
+            System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+        }
+
+        return success;
+    }
+
+    public boolean replaceDeck(int userID, List<String> cardIds){
+        boolean success = false;
+        if(!connected){
+            System.err.println("Not connected to Database!");
+            return false;
+        }
+        try{
+            c.setAutoCommit(false);
+            //Delete Old Deck
+            PreparedStatement stmt = c.prepareStatement("DELETE FROM decks WHERE userid = ?");
+            stmt.setInt(1, userID);
+            stmt.executeUpdate();
+
+            stmt = c.prepareStatement("INSERT INTO decks (userid) VALUES (?)", Statement.RETURN_GENERATED_KEYS);
+            stmt.setInt(1, userID);
+            int count = stmt.executeUpdate();
+
+            ResultSet rs = stmt.getGeneratedKeys();
+
+            if(count > 0) {
+                if (rs.next()) {
+                    int deckID = rs.getInt(1);
+                    for (String cardID : cardIds) {
+                        stmt = c.prepareStatement("INSERT INTO deckcards (deckid, cardid) VALUES (?, ?)");
+                        stmt.setInt(1, deckID);
+                        stmt.setString(2, cardID);
                         stmt.executeUpdate();
                     }
                 }

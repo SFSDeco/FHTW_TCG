@@ -96,7 +96,7 @@ public class Response {
         if(path.startsWith("/users")) path = "/users";
         switch (path) {
             case "/deck":
-                this.respond("Updated Deck", "200 OK");
+                this.updateDeck();
                 break;
             case "/users":
                 this.respond("Updated User", "200 OK");
@@ -345,6 +345,57 @@ public class Response {
 
         connection.disconnect();
         this.respond("Acquired package.", "200 OK");
+    }
+
+    public void updateDeck(){
+        String putString = incomingRequest.getPostContent();
+
+        if(!validateAuth()) {
+            this.respond("Authorization missing.", "402 Authorization required");
+            return;
+        }
+
+        try {
+            String authorization = incomingRequest.getHeaderMap().get("Authorization").replace("Bearer ", "");
+            //get List of Card IDs to add
+            ObjectMapper objectMapper = new ObjectMapper();
+            List<String> stringList = objectMapper.readValue(putString, new TypeReference<List<String>>() {});
+
+            if(stringList.size() < 4){
+                this.respond("Not enough Cards in the requested Deck.", "400 Bad Request");
+                return;
+            }
+
+            dbCommunication connection = new dbCommunication();
+            connection.connect();
+
+            User user = connection.getUserFromAuth(authorization);
+            if(user == null){
+                this.respond("Access denied/Invalid Authorization.", "402 Authorization required.");
+            }
+
+            assert user != null;
+
+            for(String cardID : stringList){
+                boolean found = user.getCardStack().stream().map(Card::getId).anyMatch(str -> str.equals(cardID));
+                if(!found){
+                    this.respond("Card not found in Deck.", "400 Bad Request");
+                    return;
+                }
+            }
+
+            if(!connection.replaceDeck(user.getId(), stringList)){
+                this.respond("Error occured during update.", "500 Internal Server Error");
+                return;
+            }
+
+            this.respond("Updated Deck.", "200");
+            connection.disconnect();
+
+        }catch(IOException e){
+            this.respond("Error during User Creation", "500");
+            System.err.println("Exception occurred in postUser: " + e);
+        }
     }
 
     public boolean validateAuth(){
