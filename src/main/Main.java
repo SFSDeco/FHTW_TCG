@@ -1,3 +1,5 @@
+package main;
+
 import main.logic.models.*;
 import main.server.DBConnect.dbCommunication;
 import main.server.HTTPServer.Server;

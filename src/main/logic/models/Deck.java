@@ -38,6 +38,10 @@ public class Deck {
         }
     }
 
+    public Card getWorst() {
+        return worst;
+    }
+
     public int size(){
         return this.deck.size();
     }

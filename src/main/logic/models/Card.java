@@ -34,6 +34,9 @@ public class Card {
         this.Id = Id;
         this.name = name;
         this.dmg = dmg;
+        this.cardType = getTypeFromName();
+        this.element = getElementFromName();
+        this.specialty = getSpecialFromName();
     }
 
     public String getId() {
@@ -172,6 +175,10 @@ public class Card {
         }
 
         return 2;
+    }
+
+    public boolean compareToCard(Card c){
+        return this.Id.equals(c.getId());
     }
 
     @Override

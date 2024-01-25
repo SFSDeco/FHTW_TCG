@@ -11,7 +11,7 @@ public class User {
     private String userName;
     private String password;
     private Vector<Card> cardStack = new Vector<Card>();
-    private Deck cardDeck;
+    private Deck cardDeck = new Deck(new Vector<>());
     private int currency = 20;
     private String authToken;
 

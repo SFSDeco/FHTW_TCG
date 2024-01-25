@@ -24,10 +24,13 @@ public class Battle implements Combat {
     }
 
     public void start(){
+
         while(winner == null && gamesPlayed < maxGames){
             resolveRound(playerA, playerB);
             winner = determineWinner(playerA, playerB);
         }
+
+        printWinner();
     }
 
     @Override
@@ -37,6 +40,10 @@ public class Battle implements Combat {
         //get the respective player deck
         Deck playerDeckA = playerA.getCardDeck();
         Deck playerDeckB = playerB.getCardDeck();
+        if(playerDeckA.isEmpty() || playerDeckB.isEmpty()) {
+            gamesPlayed = maxGames;
+            return;
+        }
         int randomCardA = random.nextInt(playerDeckA.size());
         int randomCardB = random.nextInt(playerDeckB.size());
 
@@ -50,20 +57,27 @@ public class Battle implements Combat {
                 playerA.setCardDeck(playerDeckA);
                 playerDeckB.removeCard(cardToPlayB);
                 playerB.setCardDeck(playerDeckB);
+                gamesPlayed++;
                 return;
             case -1:
                 playerDeckA.removeCard(cardToPlayA);
                 playerA.setCardDeck(playerDeckA);
                 playerDeckB.addCard(cardToPlayA);
                 playerB.setCardDeck(playerDeckB);
+                gamesPlayed++;
                 return;
             default:
+                gamesPlayed++;
                 return;
         }
     }
 
     @Override
     public User determineWinner(User playerA, User playerB) {
+        if(!(gamesPlayed > 0)){
+            return null;
+        }
+
         if(playerA.getCardDeck().isEmpty()){
             return playerB;
         }
@@ -71,5 +85,14 @@ public class Battle implements Combat {
             return playerA;
         }
         return null;
+    }
+
+    public void printWinner(){
+        if(winner == null){
+            System.out.println("The game ended in a draw!");
+        }
+        else{
+            System.out.println("The winner is: " + winner.getUserName());
+        }
     }
 }
