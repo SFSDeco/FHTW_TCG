@@ -16,15 +16,16 @@ public class Server{
     }
 
     public void start()  {
-        try(ServerSocket serverSocket = new ServerSocket(port)){
+        ServerSocket serverSocket = null;
+        try{
+            serverSocket = new ServerSocket(port);
             System.out.println("Server is running on port: " + port);
             while(true){
                 try{
                     Socket clientSocket = serverSocket.accept();
                     System.out.println("Client connected: " + clientSocket);
                     //handleClient
-                    Thread clientHandlerThread = new Thread(() -> handleClient(clientSocket));
-                    clientHandlerThread.start();
+                    new Thread(() -> handleClient(clientSocket)).start();
 
                 } catch (IOException e){
                     System.err.println("Error during client communication: " + e.getMessage());
@@ -32,6 +33,16 @@ public class Server{
             }
         }catch(IOException e){
             System.err.println("Could not listen on port " +  port);
+        }
+        finally {
+            if(serverSocket != null){
+                try{
+                    serverSocket.close();
+                }
+                catch (IOException e){
+                    System.err.println("Error during Server shutdown: " + e);
+                }
+            }
         }
     }
 
