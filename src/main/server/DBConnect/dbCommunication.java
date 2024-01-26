@@ -349,6 +349,34 @@ public class dbCommunication {
         return success;
     }
 
+    public boolean deleteAuthToken(String authToken){
+        boolean success = false;
+        if(!connected){
+            System.err.println("Not connected to Database!");
+            return false;
+        }
+        try{
+            c.setAutoCommit(false);
+            PreparedStatement stmt = c.prepareStatement("DELETE FROM userauth WHERE token = ?");
+
+            stmt.setString(1, authToken);
+
+            int count = stmt.executeUpdate();
+            if(count > 0){
+                success = true;
+            }
+
+            stmt.close();
+            c.commit();
+
+        } catch (Exception e){
+            System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+        }
+
+
+        return success;
+    }
+
     public boolean updateUser(User toUpdate){
         boolean success = false;
         if(!connected){

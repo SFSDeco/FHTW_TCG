@@ -73,7 +73,7 @@ public class Battle implements Combat {
 
     @Override
     public User determineWinner(User playerA, User playerB) {
-        if(!(gamesPlayed > 0)){
+        if(!(gamesPlayed > 0) || (playerA.getCardDeck().isEmpty() && playerB.getCardDeck().isEmpty())){
             return null;
         }
 

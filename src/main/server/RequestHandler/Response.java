@@ -86,6 +86,9 @@ public class Response {
             case "/battles":
                 this.fightBattle();
                 break;
+            case "/logout":
+                this.logoutUser();
+                break;
             default:
                 this.respond("Service has not been Implemented.", "501 Not Implemented");
         }
@@ -104,6 +107,22 @@ public class Response {
             default:
                 this.respond("Service not implemented", "501 Not Implemented");
         }
+    }
+
+    public void logoutUser(){
+        if(!validateAuth()) {
+            this.respond("Authorization missing.", "402 Authorization required");
+            return;
+        }
+        dbCommunication connection = new dbCommunication();
+        String authorization = incomingRequest.getHeaderMap().get("Authorization").replace("Bearer ", "");
+        connection.connect();
+        if(!connection.deleteAuthToken(authorization)){
+            this.respond("Error during Logout attempt.", "500 Internal Server Error");
+            return;
+        }
+        connection.disconnect();
+        this.respond("Successfully logged out! We hope you'll be back soon!", "200 OK");
     }
 
     public void fightBattle(){

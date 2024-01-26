@@ -112,7 +112,8 @@ public class Card {
                 (this.specialty.equals("ork") && opposing.getSpecialty().equals("wizard")) ||
                 (this.specialty.equals("knight") && (opposing.getElement().equals("water") && opposing.getCardType().equals("spell"))) ||
                 (this.cardType.equals("spell") && opposing.getSpecialty().equals("kraken")) ||
-                (this.cardType.equals("dragon") && opposing.getSpecialty().equals("fire elf"))
+                (this.cardType.equals("dragon") && opposing.getSpecialty().equals("fire elf") ||
+                        opposing.getSpecialty().equals("joker"))
         ) return 0;
 
 
@@ -140,6 +141,7 @@ public class Card {
         else if (nameCopy.contains("knight")) special = "knight";
         else if (nameCopy.contains("kraken")) special = "kraken";
         else if (nameCopy.contains("fire elf")) special = "fire elf";
+        else if (nameCopy.contains("joker")) special = "joker";
 
         return special;
     }

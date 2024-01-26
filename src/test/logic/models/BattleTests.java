@@ -65,7 +65,7 @@ public class BattleTests {
         Battle battle = new Battle(playerA, playerB, 5);
         battle.start();
 
-        assertNotNull(battle.determineWinner(playerA, playerB));
+        assertNull(battle.determineWinner(playerA, playerB));
     }
 
     @Test
