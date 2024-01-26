@@ -1,7 +1,5 @@
 package main.logic.models;
 
-import java.util.Objects;
-
 public class Card {
     private String name;
     private String Id;
@@ -44,7 +42,7 @@ public class Card {
     }
 
     public void setId(String ID) {
-        this.Id = Id;
+        this.Id = ID;
     }
 
     public String getElement() {

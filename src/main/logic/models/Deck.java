@@ -1,6 +1,5 @@
 package main.logic.models;
 
-import java.util.ArrayList;
 import java.util.Vector;
 
 public class Deck {

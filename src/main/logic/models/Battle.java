@@ -68,7 +68,6 @@ public class Battle implements Combat {
                 return;
             default:
                 gamesPlayed++;
-                return;
         }
     }
 

@@ -5,11 +5,8 @@ import java.io.PrintStream;
 import java.net.Socket;
 import java.util.*;
 
-import com.fasterxml.jackson.core.*;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.*;
-import com.fasterxml.jackson.annotation.*;
-import com.fasterxml.jackson.databind.type.TypeFactory;
 import main.logic.models.*;
 import main.server.DBConnect.dbCommunication;
 import main.server.models.BattleReady;
@@ -128,12 +125,9 @@ public class Response {
                     waitingForBattle.setWaitingUser(playerA);
                     connection.disconnect();
 
-                    System.out.println("Before wait loop Status of WaitingForBattle ident:\n" + waitingForBattle);
                     while(waitingForBattle.getWaitingUser() != null){
                         waitingForBattle.wait();
                     }
-                    System.out.println("After wait loop Status of WaitingForBattle ident:\n" + waitingForBattle);
-
                     this.respond("Successfully battled. Result: " + waitingForBattle.getBattle().outcomeString(), "200 OK");
                 }catch (Exception e){
                     System.err.println("Error during Battle finder: " + e);
@@ -153,7 +147,6 @@ public class Response {
                 waitingForBattle.getBattle().start();
                 waitingForBattle.setWaitingUser(null);
                 waitingForBattle.notify();
-                System.out.println("In else Status of WaitingForBattle ident:\n" + waitingForBattle);
                 this.respond("Entered Battle. Result: " + waitingForBattle.getBattle().outcomeString(), "200 OK");
             }
         }
@@ -313,9 +306,9 @@ public class Response {
             return;
         }
         String postString = incomingRequest.getPostContent();
-        String cardName, cardID, cardElement, cardType, cardSpecialty;
+        String cardName, cardID;
         double dmg;
-        List<Card> cardsToAdd = new ArrayList<Card>();
+        List<Card> cardsToAdd = new ArrayList<>();
 
         try {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -453,7 +446,7 @@ public class Response {
     }
 
     public boolean validateAuth(){
-        boolean validate = false;
+        boolean validate;
         if(!incomingRequest.getHeaderMap().containsKey("Authorization")) return false;
         String authorization = incomingRequest.getHeaderMap().get("Authorization").replace("Bearer ", "");
 

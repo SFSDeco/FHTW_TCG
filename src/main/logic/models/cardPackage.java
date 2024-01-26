@@ -3,7 +3,7 @@ package main.logic.models;
 import java.util.ArrayList;
 
 public class cardPackage {
-    private final ArrayList<Card> cardPackage = new ArrayList<Card>(5);
+    private final ArrayList<Card> cardPackage = new ArrayList<>(5);
     private int packageID;
 
     public cardPackage() {

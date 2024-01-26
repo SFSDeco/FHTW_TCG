@@ -1,7 +1,5 @@
 package main.logic.models;
 
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Vector;
 
@@ -10,7 +8,7 @@ public class User {
     private int id;
     private String userName;
     private String password;
-    private Vector<Card> cardStack = new Vector<Card>();
+    private Vector<Card> cardStack = new Vector<>();
     private Deck cardDeck = new Deck(new Vector<>());
     private int currency = 20;
     private String authToken;
@@ -53,13 +51,8 @@ public class User {
     }
 
     public void evaluateDeck(){
-        Deck newDeck = new Deck(new Vector<Card>());
-        cardStack.sort(new Comparator<Card>() {
-            @Override
-            public int compare(Card o1, Card o2) {
-                return Double.compare(o2.getDamage(), o1.getDamage());
-            }
-        });
+        Deck newDeck = new Deck(new Vector<>());
+        cardStack.sort((o1, o2) -> Double.compare(o2.getDamage(), o1.getDamage()));
 
         for(int i = 0; i < 4; i++){
             newDeck.addCard(cardStack.get(i));
