@@ -10,13 +10,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.*;
 import com.fasterxml.jackson.annotation.*;
 import com.fasterxml.jackson.databind.type.TypeFactory;
-import main.logic.models.Card;
-import main.logic.models.Deck;
-import main.logic.models.User;
-import main.logic.models.cardPackage;
+import main.logic.models.*;
 import main.server.DBConnect.dbCommunication;
+import main.server.models.BattleReady;
 
 public class Response {
+
+    public static final BattleReady waitingForBattle = new BattleReady();
     private final Request incomingRequest;
     private final PrintStream out;
 
@@ -86,6 +86,9 @@ public class Response {
             case "/transactions/packages":
                 this.acquirePackage();
                 break;
+            case "/battles":
+                this.fightBattle();
+                break;
             default:
                 this.respond("Service has not been Implemented.", "501 Not Implemented");
         }
@@ -104,6 +107,57 @@ public class Response {
             default:
                 this.respond("Service not implemented", "501 Not Implemented");
         }
+    }
+
+    public void fightBattle(){
+        if(!validateAuth()) {
+            this.respond("Authorization missing.", "402 Authorization required");
+            return;
+        }
+
+        User playerA, playerB;
+        dbCommunication connection = new dbCommunication();
+        String authorization = incomingRequest.getHeaderMap().get("Authorization").replace("Bearer ", "");
+        if(!waitingForBattle.isWaiting()){
+            synchronized (waitingForBattle){
+                try{
+                    waitingForBattle.setWaiting(true);
+                    connection.connect();
+                    playerA = connection.getUserFromAuth(authorization);
+
+                    waitingForBattle.setWaitingUser(playerA);
+                    connection.disconnect();
+
+                    System.out.println("Before wait loop Status of WaitingForBattle ident:\n" + waitingForBattle);
+                    while(waitingForBattle.getWaitingUser() != null){
+                        waitingForBattle.wait();
+                    }
+                    System.out.println("After wait loop Status of WaitingForBattle ident:\n" + waitingForBattle);
+
+                    this.respond("Successfully battled. Result: " + waitingForBattle.getBattle().outcomeString(), "200 OK");
+                }catch (Exception e){
+                    System.err.println("Error during Battle finder: " + e);
+                }
+            }
+        }
+        else{
+            synchronized (waitingForBattle){
+                waitingForBattle.setWaiting(false);
+
+
+                connection.connect();
+                playerB = connection.getUserFromAuth(authorization);
+                connection.disconnect();
+
+                waitingForBattle.setBattle(new Battle(waitingForBattle.getWaitingUser(), playerB));
+                waitingForBattle.getBattle().start();
+                waitingForBattle.setWaitingUser(null);
+                waitingForBattle.notify();
+                System.out.println("In else Status of WaitingForBattle ident:\n" + waitingForBattle);
+                this.respond("Entered Battle. Result: " + waitingForBattle.getBattle().outcomeString(), "200 OK");
+            }
+        }
+
     }
 
     public void getDeck(){

@@ -30,7 +30,7 @@ public class Battle implements Combat {
             winner = determineWinner(playerA, playerB);
         }
 
-        printWinner();
+        System.out.println(outcomeString());
     }
 
     @Override
@@ -87,12 +87,12 @@ public class Battle implements Combat {
         return null;
     }
 
-    public void printWinner(){
+    public String outcomeString(){
         if(winner == null){
-            System.out.println("The game ended in a draw!");
+            return "The game ended in a draw!";
         }
         else{
-            System.out.println("The winner is: " + winner.getUserName());
+            return "The winner is: " + winner.getUserName();
         }
     }
 }

@@ -9,13 +9,13 @@ import java.util.ArrayList;
 
 public class RequestHandler {
     private Request HTTPRequest;
-    private final Socket clientSocket;
+    private Socket clientSocket;
 
-    public RequestHandler(Socket clientSocket) {
-        this.clientSocket = clientSocket;
+    public RequestHandler() {
     }
 
-    public void handle(){
+    public void handle(Socket incomingSocket){
+        this.clientSocket = incomingSocket;
         try {
             ArrayList<String> requestArray = new ArrayList<>();
             InputStream inClient = null;
