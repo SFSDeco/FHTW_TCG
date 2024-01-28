@@ -211,4 +211,51 @@ public class BattleTests {
         assertEquals(1, playerA.getCardDeck().size());
         assertEquals(1, playerB.getCardDeck().size());
     }
+
+    /*
+    ###########################
+            scoreCalc testing
+    ###########################
+     */
+    @Test
+    public void testScoreCalcEqualScores() {
+        Battle battle = new Battle(new User("a", "a"), new User("a", "b"));
+
+        int scoreSelf = 100;
+        int scoreOpponent = 100;
+
+        int result = battle.scoreCalc(true, scoreSelf, scoreOpponent);
+
+        // For equal scores, the result should be the minimum value (5 in this case)
+        assertEquals(110, result);
+    }
+
+    @Test
+    public void testScoreCalcLowerScoreSelf() {
+        Battle battle = new Battle(new User("a", "a"), new User("a", "b"));
+
+        int scoreSelf = 90;
+        int scoreOpponent = 110;
+
+        int result = battle.scoreCalc(false, scoreSelf, scoreOpponent);
+
+        // Since the player won and the scores are not equal, the result should be scoreSelf + change
+        assertEquals(scoreSelf - 8, result);
+    }
+
+    @Test
+    public void testScoreCalcLowerScoreOpponent() {
+        Battle battle = new Battle(new User("a", "a"), new User("a", "b"));
+        int scoreSelf = 110;
+        int scoreOpponent = 90;
+
+        int result = battle.scoreCalc(false, scoreSelf, scoreOpponent);
+
+        // Since the player lost and the scores are not equal, the result should be scoreSelf - change
+        assertEquals(scoreSelf - 12, result);
+    }
+
+
+
+
 }

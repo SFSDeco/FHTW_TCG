@@ -52,16 +52,13 @@ public class Response {
                 this.getDeck();
                 break;
             case "/stats":
-                this.respond("Got Stats", "200 OK");
+                this.getStats();
                 break;
             case "/scoreboard":
-                this.respond("Got Scoreboard", "200 OK");
-                break;
-            case "/tradings":
-                this.respond("Got Trading", "200 OK");
+                this.getScoreboard();
                 break;
             case "/users":
-                this.respond("Got User", "200 OK");
+                this.getUser();
                 break;
             default:
                 this.respond("Service not implemented", "501 Not Implemented");
@@ -94,15 +91,13 @@ public class Response {
         }
     }
 
+    @SuppressWarnings("SwitchStatementWithTooFewBranches")
     public void putHandler() {
         String path = incomingRequest.getRequestPath();
         if(path.startsWith("/users")) path = "/users";
         switch (path) {
             case "/deck":
                 this.updateDeck();
-                break;
-            case "/users":
-                this.respond("Updated User", "200 OK");
                 break;
             default:
                 this.respond("Service not implemented", "501 Not Implemented");
@@ -131,6 +126,7 @@ public class Response {
             return;
         }
 
+        //Theoretically One User Object would be enough, two are used to improve clarity
         User playerA, playerB;
         dbCommunication connection = new dbCommunication();
         String authorization = incomingRequest.getHeaderMap().get("Authorization").replace("Bearer ", "");
@@ -142,11 +138,17 @@ public class Response {
                     playerA = connection.getUserFromAuth(authorization);
 
                     waitingForBattle.setWaitingUser(playerA);
-                    connection.disconnect();
 
                     while(waitingForBattle.getWaitingUser() != null){
                         waitingForBattle.wait();
                     }
+                    if(!connection.updateScore(waitingForBattle.getBattle().getPlayerA().getScore(), waitingForBattle.getBattle().getPlayerA().getId())){
+                        this.respond("Tried to use a teakettle for score updates.", "418 I'm a teapot");
+                        connection.disconnect();
+                        return;
+                    }
+
+                    connection.disconnect();
                     this.respond("Successfully battled. Result: " + waitingForBattle.getBattle().outcomeString(), "200 OK");
                 }catch (Exception e){
                     System.err.println("Error during Battle finder: " + e);
@@ -160,16 +162,73 @@ public class Response {
 
                 connection.connect();
                 playerB = connection.getUserFromAuth(authorization);
-                connection.disconnect();
 
                 waitingForBattle.setBattle(new Battle(waitingForBattle.getWaitingUser(), playerB));
                 waitingForBattle.getBattle().start();
+                if(!connection.updateScore(waitingForBattle.getBattle().getPlayerB().getScore(), waitingForBattle.getBattle().getPlayerB().getId())){
+                    this.respond("Tried to use a teakettle for score updates.", "418 I'm a teapot");
+                    connection.disconnect();
+                    return;
+                }
                 waitingForBattle.setWaitingUser(null);
                 waitingForBattle.notify();
+                connection.disconnect();
                 this.respond("Entered Battle. Result: " + waitingForBattle.getBattle().outcomeString(), "200 OK");
             }
         }
 
+    }
+
+    public void getStats(){
+        if(!validateAuth()) {
+            this.respond("Authorization missing.", "402 Authorization required");
+            return;
+        }
+        String authorization = incomingRequest.getHeaderMap().get("Authorization").replace("Bearer ", "");
+
+        dbCommunication connection = new dbCommunication();
+        connection.connect();
+
+        User user = connection.getUserFromAuth(authorization);
+        int score = user.getScore();
+
+        connection.disconnect();
+        this.respond("Your current score is: " + score, "200 OK");
+    }
+
+    public void getScoreboard(){
+        if(!validateAuth()) {
+            this.respond("Authorization missing.", "402 Authorization required");
+            return;
+        }
+
+        dbCommunication connection = new dbCommunication();
+        connection.connect();
+        String scoreBoard = connection.getScoreboard();
+
+        connection.disconnect();
+        this.respond("The current Rankings are: " + scoreBoard, "200 OK");
+    }
+
+    public void getUser(){
+        if(!validateAuth()) {
+            this.respond("Authorization missing.", "402 Authorization required");
+            return;
+        }
+        String authorization = incomingRequest.getHeaderMap().get("Authorization").replace("Bearer ", "");
+        String response = "";
+
+        dbCommunication connection = new dbCommunication();
+        connection.connect();
+
+        User user = connection.getUserFromAuth(authorization);
+
+        response += "Username: " + user.getUserName()
+                + "\n Coins: " + user.getCurrency()
+                + "\n Score: " + user.getScore();
+
+        connection.disconnect();
+        this.respond(response, "200 OK");
     }
 
     public void getDeck(){

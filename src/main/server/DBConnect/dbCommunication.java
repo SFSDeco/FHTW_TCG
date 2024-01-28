@@ -155,8 +155,11 @@ public class dbCommunication {
 
         try{
             String username = "", password = "";
-            int id=-1, coins = -1;
-            PreparedStatement stmt = c.prepareStatement("SELECT * FROM userauth INNER JOIN users ON userauth.userid = users.userid WHERE token = ?");
+            int id=-1, coins = -1, score = -1;
+            PreparedStatement stmt = c.prepareStatement("SELECT * FROM userauth " +
+                    "INNER JOIN users ON userauth.userid = users.userid " +
+                    "INNER JOIN scores ON userauth.userid = scores.userid " +
+                    "WHERE token = ?");
 
             stmt.setString(1, authorization);
 
@@ -171,6 +174,7 @@ public class dbCommunication {
                 password = rs.getString("password");
                 coins = rs.getInt("coins");
                 id = rs.getInt("userid");
+                score = rs.getInt("score");
             }
 
             rs.close();
@@ -180,6 +184,7 @@ public class dbCommunication {
 
             user.setCardStack(this.getCards(user));
             user.setCardDeck(this.getDeck(user));
+            user.setScore(score);
 
             if(!username.isEmpty() && !password.isEmpty() && coins >= 0){
                 return user;
@@ -321,6 +326,42 @@ public class dbCommunication {
         return userDeck;
     }
 
+    public String getScoreboard(){
+        StringBuilder board= new StringBuilder();
+
+        if(!connected){
+            System.err.println("Not connected to Database!");
+            return null;
+        }
+
+        try{
+            String username = "";
+            int score, placement = 1;
+            PreparedStatement stmt = c.prepareStatement("SELECT username, score FROM scores " +
+                    "INNER JOIN users ON scores.userid = users.userid " +
+                    "ORDER BY score DESC");
+
+            ResultSet rs = stmt.executeQuery();
+
+            while(rs.next()){
+                username = rs.getString("username");
+                score = rs.getInt("score");
+
+                board.append("\nRank ").append(placement).append(": ").append(username).append(" -- Score: ").append(score);
+                placement++;
+            }
+
+            rs.close();
+            stmt.close();
+
+        }catch (Exception e){
+            System.err.println( e.getClass().getName()+": "+ e.getMessage() );
+        }
+
+
+        return board.toString();
+    }
+
     public boolean deletePackage(int ID){
         boolean success = false;
         if(!connected){
@@ -445,6 +486,33 @@ public class dbCommunication {
         return success;
     }
 
+    public boolean updateScore(int newScore, int userID){
+        boolean success = false;
+        if(!connected){
+            System.err.println("Not connected to Database!");
+            return false;
+        }
+        try {
+            c.setAutoCommit(false);
+            PreparedStatement stmt = c.prepareStatement("UPDATE scores " +
+                    "SET score = ? " +
+                    "WHERE userid = ?");
+
+            stmt.setInt(1, newScore);
+            stmt.setInt(2, userID);
+
+            int count = stmt.executeUpdate();
+            if (count > 0) success = true;
+
+            stmt.close();
+            c.commit();
+        }catch(Exception e){
+            System.err.println("Unexpected error in update Score: " + e);
+        }
+
+        return success;
+    }
+
     public boolean replaceDeck(int userID, List<String> cardIds){
         boolean success = false;
         if(!connected){
@@ -526,14 +594,23 @@ public class dbCommunication {
             String username = toInsert.getUserName();
             String password = toInsert.getPassword();
             c.setAutoCommit(false);
-            PreparedStatement stmt = c.prepareStatement("INSERT INTO users (username, password) VALUES (?, ?)");
+            PreparedStatement stmt = c.prepareStatement("INSERT INTO users (username, password) VALUES (?, ?)", Statement.RETURN_GENERATED_KEYS);
 
             stmt.setString(1, username);
             stmt.setString(2, password);
 
+
             int count = stmt.executeUpdate();
+            ResultSet rs = stmt.getGeneratedKeys();
+
             if(count > 0){
-                success = true;
+                if(rs.next()) {
+                    if(!this.createScore(rs.getInt(1))){
+                        System.out.println("Error during scoreboard entry generation...");
+                        return success;
+                    }
+                    success = true;
+                }
             }
 
             stmt.close();
@@ -542,6 +619,29 @@ public class dbCommunication {
         } catch (Exception e){
             System.err.println( e.getClass().getName()+": "+ e.getMessage() );
         }
+        return success;
+    }
+
+    public boolean createScore(int userid){
+        boolean success = false;
+        if(!connected){
+            System.err.println("Not connected to Database!");
+            return false;
+        }
+        try{
+            c.setAutoCommit(false);
+
+            PreparedStatement stmt = c.prepareStatement("INSERT INTO scores (userid, score) VALUES (?, 100)");
+
+            stmt.setInt(1, userid);
+            int count = stmt.executeUpdate();
+
+            if(count > 0) success = true;
+
+        } catch (Exception e){
+            System.err.println("Error during Score creation Database communication: " + e);
+        }
+
         return success;
     }
 

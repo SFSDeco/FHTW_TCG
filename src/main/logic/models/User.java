@@ -12,6 +12,7 @@ public class User {
     private Deck cardDeck = new Deck(new Vector<>());
     private int currency = 20;
     private String authToken;
+    private int score;
 
     public User(int id, String userName, String password, Vector<Card> cardStack, Vector<Card> cardDeck, int currency) {
         this.id = id;
@@ -59,6 +60,14 @@ public class User {
         }
 
         cardDeck = newDeck;
+    }
+
+    public int getScore() {
+        return score;
+    }
+
+    public void setScore(int score) {
+        this.score = score;
     }
 
     public int getId() {

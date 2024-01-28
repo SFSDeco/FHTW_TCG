@@ -33,7 +33,9 @@ public class Battle implements Combat {
             winner = determineWinner(playerA, playerB);
         }
 
-        System.out.println(outcomeString());
+        updatePlayerScores();
+
+        System.out.println("Player A new Score: " + playerA.getScore() + "\nPlayer B new Score: " + playerB.getScore());
     }
 
     @Override
@@ -106,5 +108,53 @@ public class Battle implements Combat {
         else{
             return crudeLog + "\nThe winner is: " + winner.getUserName();
         }
+    }
+
+    public void updatePlayerScores(){
+        int scoreA = playerA.getScore(), scoreB = playerB.getScore();
+
+
+        if(winner == null) return;
+
+        else if(winner == playerA) {
+            playerA.setScore(scoreCalc(true, scoreA, scoreB));
+            playerB.setScore(scoreCalc(false, scoreB, scoreA));
+        }
+
+        else{
+
+            playerA.setScore(scoreCalc(false, scoreA, scoreB));
+            playerB.setScore(scoreCalc(true, scoreB, scoreA));
+        }
+    }
+
+    public int scoreCalc(boolean won, int scoreSelf, int scoreOpponent){
+        //Most basic MMR calculation
+        //Score + Win/Loss * ( Opponent / Player )
+        //can't be beneath the minimum of 5
+        int minimum = 5;
+        double change = 10;
+        double score = scoreSelf;
+        double Modifier = (double) scoreOpponent / scoreSelf, reverseModifier = (double) scoreSelf / scoreOpponent;
+
+
+
+        if(won){
+            score = Math.round(score + change * Modifier);
+        }
+        else{
+            score = Math.round(score - change * reverseModifier);
+        }
+
+
+        return (int) Math.max(score, minimum);
+    }
+
+    public User getPlayerA() {
+        return playerA;
+    }
+
+    public User getPlayerB() {
+        return playerB;
     }
 }
