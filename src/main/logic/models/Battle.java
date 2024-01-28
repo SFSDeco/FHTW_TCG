@@ -11,6 +11,8 @@ public class Battle implements Combat {
     //maybe not needed? private User loser = null;
     private int maxGames = 100;
     private int gamesPlayed = 0;
+    private String crudeLog = "";
+
 
     public Battle(User playerA, User playerB){
         this.playerA = playerA;
@@ -24,6 +26,7 @@ public class Battle implements Combat {
     }
 
     public void start(){
+        crudeLog = "\nThe game between " + playerA.getUserName() + " and " + playerB.getUserName() + " begins.";
 
         while(winner == null && gamesPlayed < maxGames){
             resolveRound(playerA, playerB);
@@ -50,8 +53,16 @@ public class Battle implements Combat {
         Card cardToPlayA = playerDeckA.getCardFromIndex(randomCardA);
         Card cardToPlayB = playerDeckB.getCardFromIndex(randomCardB);
 
+        crudeLog += "\nRound Number " + (gamesPlayed+1) + "\n Player " + playerA.getUserName() + " plays: " + cardToPlayA.getName();
+        crudeLog += "\n Player " + playerB.getUserName() + " plays: " + cardToPlayB.getName();
+
+        crudeLog += "\n" + cardToPlayA.getName() + " deals " + (cardToPlayA.getDamage() * cardToPlayA.calculateSpell(cardToPlayB.getElement()) * cardToPlayA.resolveSpecial(cardToPlayB)) + " damage.";
+        crudeLog += "\n" + cardToPlayB.getName() + " deals " + (cardToPlayB.getDamage() * cardToPlayB.calculateSpell(cardToPlayA.getElement()) * cardToPlayB.resolveSpecial(cardToPlayA)) + " damage.";
+
+
         switch(cardToPlayA.resolveWinner(cardToPlayB)){
             case 1:
+                crudeLog += "\n Player " + playerA.getUserName() + " won the round!\n";
                 //add/remove cards from their respective copies of the deck, set the player decks
                 playerDeckA.addCard(cardToPlayB);
                 playerA.setCardDeck(playerDeckA);
@@ -60,6 +71,7 @@ public class Battle implements Combat {
                 gamesPlayed++;
                 return;
             case -1:
+                crudeLog += "\n Player " + playerB.getUserName() + " won the round!\n";
                 playerDeckA.removeCard(cardToPlayA);
                 playerA.setCardDeck(playerDeckA);
                 playerDeckB.addCard(cardToPlayA);
@@ -67,6 +79,7 @@ public class Battle implements Combat {
                 gamesPlayed++;
                 return;
             default:
+                crudeLog += "\nThe Round ended in a draw...\n";
                 gamesPlayed++;
         }
     }
@@ -88,10 +101,10 @@ public class Battle implements Combat {
 
     public String outcomeString(){
         if(winner == null){
-            return "The game ended in a draw!";
+            return crudeLog + "\nThe game ended in a draw!";
         }
         else{
-            return "The winner is: " + winner.getUserName();
+            return crudeLog + "\nThe winner is: " + winner.getUserName();
         }
     }
 }
